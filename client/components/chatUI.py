@@ -3,7 +3,7 @@ from utils.api import ask_question
 
 
 def render_chat():
-    st.subheader("💬 Chat with your assistant")
+    st.subheader("Chat with your assistant")
 
     if "messages" not in st.session_state:
         st.session_state.messages=[]
@@ -24,10 +24,6 @@ def render_chat():
             answer=data["response"]
             sources=data.get("sources",[])
             st.chat_message("assistant").markdown(answer)
-            # if sources:
-            #     st.markdown("📄 **Sources: **")
-            #     for src in sources:
-            #         st.markdown(f"- `{src}`")
             st.session_state.messages.append({"role":"assistant","content":answer})
         else:
             st.error(f"Error: {response.text}")
