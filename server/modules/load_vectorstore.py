@@ -10,39 +10,32 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 load_dotenv()
 
-GOOGLE_API_KEY=os.getenv("GOOGLE_API_KEY")
-PINECONE_API_KEY=os.getenv("PINECONE_API_KEY")
-PINECONE_ENV="us-east-1"
-PINECONE_INDEX_NAME="medicalindex"
-
-os.environ["GOOGLE_API_KEY"]=GOOGLE_API_KEY
-
-UPLOAD_DIR="./uploaded_docs"
-os.makedirs(UPLOAD_DIR,exist_ok=True)
-
-
-# initialize pinecone instance
-pc=Pinecone(api_key=PINECONE_API_KEY)
-spec=ServerlessSpec(cloud="aws",region=PINECONE_ENV)
-existing_indexes=[i["name"] for i in pc.list_indexes()]
-
-
-if PINECONE_INDEX_NAME not in existing_indexes:
-    pc.create_index(
-        name=PINECONE_INDEX_NAME,
-        dimension=768,
-        metric="dotproduct",
-        spec=spec
-    )
-    while not pc.describe_index(PINECONE_INDEX_NAME).status["ready"]:
-        time.sleep(1)
-
-
-index=pc.Index(PINECONE_INDEX_NAME)
-
-# load,split,embed and upsert pdf docs content
+UPLOAD_DIR = "./uploaded_docs"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def load_vectorstore(uploaded_files):
+    # ← moved inside function so it runs AFTER env vars are loaded
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+    PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "medicalindex")
+
+    os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
+
+    pc = Pinecone(api_key=PINECONE_API_KEY)
+    spec = ServerlessSpec(cloud="aws", region="us-east-1")
+    existing_indexes = [i["name"] for i in pc.list_indexes()]
+
+    if PINECONE_INDEX_NAME not in existing_indexes:
+        pc.create_index(
+            name=PINECONE_INDEX_NAME,
+            dimension=768,
+            metric="dotproduct",
+            spec=spec
+        )
+        while not pc.describe_index(PINECONE_INDEX_NAME).status["ready"]:
+            time.sleep(1)
+
+    index = pc.Index(PINECONE_INDEX_NAME)
     embed_model = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     file_paths = []
 
@@ -66,11 +59,12 @@ def load_vectorstore(uploaded_files):
         print(f"🔍 Embedding {len(texts)} chunks...")
         embeddings = embed_model.embed_documents(texts)
 
-        print("Uploading to Pinecone...")
         vectors = [
             {"id": id_, "values": emb, "metadata": {"text": texts[i], **metadatas[i]}}
             for i, (id_, emb) in enumerate(zip(ids, embeddings))
         ]
+
+        print("📤 Uploading to Pinecone...")
         with tqdm(total=len(embeddings), desc="Upserting to Pinecone") as progress:
             index.upsert(vectors=vectors)
             progress.update(len(embeddings))
