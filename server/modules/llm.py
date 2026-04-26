@@ -17,7 +17,7 @@ def get_llm_chain(retriever):
     prompt = PromptTemplate(
         input_variables=["context", "question"],
         template="""
-You are **MediBot**, an AI-powered assistant trained to help users understand medical documents and health-related questions.
+You are **Zora**, an AI-powered medical assistant trained to help users understand medical documents and health-related questions.
 
 Your job is to provide clear, accurate, and helpful responses based **only on the provided context**.
 

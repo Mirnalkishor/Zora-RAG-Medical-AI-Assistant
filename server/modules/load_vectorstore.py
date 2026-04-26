@@ -68,7 +68,11 @@ def load_vectorstore(uploaded_files):
 
         print("📤 Uploading to Pinecone...")
         with tqdm(total=len(embeddings), desc="Upserting to Pinecone") as progress:
-            index.upsert(vectors=zip(ids, embeddings, metadatas))
+            vectors = [
+    {"id": id_, "values": emb, "metadata": {"text": texts[i], **metadatas[i]}}
+    for i, (id_, emb) in enumerate(zip(ids, embeddings))
+]
+index.upsert(vectors=vectors)
             progress.update(len(embeddings))
 
         print(f"✅ Upload complete for {file_path}")

@@ -6,8 +6,7 @@ from routes.ask_question import router as ask_router
 
 
 
-app=FastAPI(title="Medical Assistant API",description="API for AI Medical Assistant Chatbot")
-
+app = FastAPI(title="Zora API", description="Zora — RAG-powered Medical AI Assistant")
 # CORS Setup
 app.add_middleware(
     CORSMiddleware,
