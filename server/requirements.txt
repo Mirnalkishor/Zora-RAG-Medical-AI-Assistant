@@ -19,7 +19,7 @@ pinecone
 langchain-google-genai
 
 # PDF Parsing
-PyPDF  # backend for langchain_community PyPDFLoader
+pypdf
 
 # Environment Variables
 python-dotenv
