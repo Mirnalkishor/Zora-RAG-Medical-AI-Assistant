@@ -9,6 +9,9 @@ langchain-community
 langchain-core
 langchain-groq
 
+
+langchain-text-splitters
+
 # Vectorstore
 # chromadb
 pinecone
